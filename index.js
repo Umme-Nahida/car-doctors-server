@@ -15,6 +15,8 @@ app.use(cors({
 }))
 app.use(express.json())
 
+
+
 // logger middleware
 const logger = async(req,res,next)=>{
   console.log('this is url method', req.method,req.url)
@@ -26,11 +28,11 @@ const varifyToken = async(req,res,next)=>{
    const token = req.cookies.accessToken;
   //  console.log(token)
    if(!token){
-    return res.status(401).send({massage:'unAuthrized'})
+    return res.status(401).send({massage:'unAuthrized you dont have a any token '})
    }
    jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
      if(err){
-      return res.status(401).send({massage: 'unAuthrized'})
+      return res.status(401).send({massage: 'unAuthrized because your token is not verified '})
      }
      req.validUser = decoded;
      next()
@@ -38,7 +40,7 @@ const varifyToken = async(req,res,next)=>{
    
 }
 
-console.log(process.env.DB_PASS)
+console.log("token",process.env.ACCESS_TOKEN_SECRET)
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ytj0kf8.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -104,7 +106,7 @@ async function run() {
     // update booking use this api
     app.patch('/bookings/:id', async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = {_id: new ObjectId(id)}
       const updateBooking = req.body;
       console.log(updateBooking)
       const updateDoc = {
@@ -117,12 +119,12 @@ async function run() {
     })
 
     app.get('/bookings',varifyToken, async (req, res) => {
-      // console.log(req.query.email)
+      console.log(req.query.email,'tmi hoila booking kora user')
       console.log('this is valid user info',(req.validUser))
       // console.log('this is cookies come to the client side', req.cookies.accessToken)
-      if(req.query.email !== req.validUser.email){
-        return res.status(403).send({massage:'forbitten error unAuthorizes access'})
-      }
+      // if(req.query.email !== req.validUser.email){
+      //   return res.status(403).send({massage:'forbitten error unAuthorizes access'})
+      // }
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email}
