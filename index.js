@@ -76,7 +76,7 @@ async function run() {
         .send({ success: true })
     })
 
-    // loguot user api create
+    // create a api for logOut the when token is expire
     app.post('/logOut', async (req, res) => {
       const user = req.body;
       console.log('this is loggout user',user)
