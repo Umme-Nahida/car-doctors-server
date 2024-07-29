@@ -26,21 +26,22 @@ const logger = async(req,res,next)=>{
 // varify token 
 const varifyToken = async(req,res,next)=>{
    const token = req.cookies.accessToken;
-  //  console.log(token)
+   console.log("toooo",token)
    if(!token){
     return res.status(401).send({massage:'unAuthrized you dont have a any token '})
    }
    jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
      if(err){
-      return res.status(401).send({massage: 'unAuthrized because your token is not verified '})
+      return res.status(401).send({massage: 'forbitten access because your token is not verified '})
      }
      req.validUser = decoded;
+     console.log("validUser:",req.validUser)
      next()
    })
    
 }
 
-console.log("token",process.env.ACCESS_TOKEN_SECRET)
+// console.log("token",process.env.ACCESS_TOKEN_SECRET)
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ytj0kf8.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -65,13 +66,12 @@ async function run() {
     app.post('/jwt', async (req, res) => {
       const user = req.body;
       console.log('this is ', user)
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1s" })
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" })
 
       res
         .cookie('accessToken', token, {
           httpOnly: true,
           secure: true,
-          sameSite: 'none'
         })
         .send({ success: true })
     })
@@ -86,7 +86,7 @@ async function run() {
     })
 
     // this is service api 
-    app.get('/services',logger, async (req, res) => {
+    app.get('/services',logger,varifyToken, async (req, res) => {
       const cursor = serviceCollection.find()
       const result = await cursor.toArray()
       res.send(result)
@@ -118,20 +118,28 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/bookings',varifyToken, async (req, res) => {
-      console.log(req.query.email,'tmi hoila booking kora user')
-      console.log('this is valid user info',(req.validUser))
-      // console.log('this is cookies come to the client side', req.cookies.accessToken)
-      // if(req.query.email !== req.validUser.email){
-      //   return res.status(403).send({massage:'forbitten error unAuthorizes access'})
-      // }
-      let query = {};
-      if (req.query?.email) {
-        query = { email: req.query.email}
+
+    app.get("/bookings",varifyToken,async(req,res)=>{
+      try{
+        console.log(req.validUser)
+        console.log("Userr",req.query.email)
+      if(req.query.email !== req.validUser?.email){
+          return res.status(403).send({massage:"forbitten access"})
       }
-      const result = await bookingCollection.find(query).toArray()
-      res.send(result)
+      let query = { };
+      if(req.query.email){
+        query = {email: req.query.email}
+      }
+
+     const result = await bookingCollection.find(query).toArray();
+     res.send(result)
+      }
+      catch(err){
+        console.log(err)
+      }
+      
     })
+
     app.post('/bookings', async (req, res) => {
       const booking = req.body;
       //  console.log(booking)
