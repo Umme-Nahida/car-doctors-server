@@ -5,12 +5,12 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const cors = require('cors')
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8000;
 
 // middleware 
 app.use(cookiesParser())
 app.use(cors({
-  origin: ["http://localhost:5173"],
+  origin: ["http://localhost:5173","https://66a7b29999d8e922538b7d42--storied-semifreddo-3eb4bb.netlify.app","https://storied-semifreddo-3eb4bb.netlify.app"],
   credentials: true
 }))
 app.use(express.json())
@@ -86,7 +86,7 @@ async function run() {
     })
 
     // this is service api 
-    app.get('/services',logger,varifyToken, async (req, res) => {
+    app.get('/services',logger, async (req, res) => {
       const cursor = serviceCollection.find()
       const result = await cursor.toArray()
       res.send(result)
@@ -148,7 +148,7 @@ async function run() {
     })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
